@@ -1,0 +1,23 @@
+{
+  "name": "assert",
+  "version": "0.0.1",
+  "description": "A type assertion library for Traceur.",
+  "main": "",
+  "homepage": "https://github.com/angular/assert",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/angular/assert.git"
+  },
+  "bugs": {
+    "url": "https://github.com/angular/assert/issues"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "pipe": "git://github.com/angular/pipe"
+  },
+  "scripts": {
+    "test": "karma start --single-run"
+  },
+  "author": "Vojta Jína <vojta.jina@gmail.com>",
+  "license": "Apache-2.0"
+}
