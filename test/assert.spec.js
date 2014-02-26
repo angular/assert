@@ -33,6 +33,11 @@ describe('basic type check', function() {
     expect(() => assert.type(123, Type))
       .toThrowError('Expected an instance of Type, got 123!');
   });
+
+
+  it('should allow null', function() {
+    assert.type(null, Type);
+  });
 });
 
 
@@ -86,8 +91,8 @@ describe('custom check', function() {
     };
 
     expect(function() {
-      assert.type(null, Type);
-    }).toThrowError('Expected an instance of Type, got null!\n' +
+      assert.type(12345, Type);
+    }).toThrowError('Expected an instance of Type, got 12345!\n' +
                     '  - not long enough');
   });
 });
@@ -110,8 +115,12 @@ describe('primitive value check', function() {
 
 
     it('should fail', function() {
-      expect(() => assert.type(null, assert.string))
-        .toThrowError('Expected an instance of string, got null!');
+      expect(() => assert.type(12345, primitive.string))
+        .toThrowError('Expected an instance of string, got 12345!');
+    });
+
+    it('should allow null', function() {
+      assert.type(null, primitive.string);
     });
   });
 
@@ -127,6 +136,10 @@ describe('primitive value check', function() {
       expect(() => assert.type(false, primitive.number))
         .toThrowError('Expected an instance of number, got false!');
     });
+
+    it('should allow null', function() {
+      assert.type(null, primitive.number);
+    });
   });
 
 
@@ -141,6 +154,10 @@ describe('primitive value check', function() {
     it('should fail', function() {
       expect(() => assert.type(123, primitive.boolean))
         .toThrowError('Expected an instance of boolean, got 123!');
+    });
+
+    it('should allow null', function() {
+      assert.type(null, primitive.boolean);
     });
   });
 });
@@ -205,10 +222,10 @@ describe('define', function() {
 
 
     it('should fail when non-array given', function () {
-      expect(() => assert.type(null, Titles))
-        .toThrowError('Expected an instance of ListOfTitles, got null!\n' +
-                      '  - null is not instance of array of string/number\n' +
-                      '    - null is not instance of Array');
+      expect(() => assert.type('foo', Titles))
+        .toThrowError('Expected an instance of ListOfTitles, got "foo"!\n' +
+                      '  - "foo" is not instance of array of string/number\n' +
+                      '    - "foo" is not instance of Array');
     });
 
 
@@ -240,10 +257,10 @@ describe('define', function() {
 
 
     it('should fail when non-object given', function () {
-      expect(() => assert.type(null, User))
-        .toThrowError('Expected an instance of MyUser, got null!\n' +
-                      '  - null is not instance of object with properties name, age\n' +
-                      '    - null is not instance of Object');
+      expect(() => assert.type(123, User))
+        .toThrowError('Expected an instance of MyUser, got 123!\n' +
+                      '  - 123 is not instance of object with properties name, age\n' +
+                      '    - 123 is not instance of Object');
     });
 
 
@@ -316,8 +333,8 @@ describe('Traceur', function() {
 
     it('should fail', function() {
       expect(() => {
-        var count: number = null;
-      }).toThrowError('Expected an instance of number, got null!');
+        var count: number = true;
+      }).toThrowError('Expected an instance of number, got true!');
     });
   });
 });

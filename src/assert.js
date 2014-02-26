@@ -75,7 +75,7 @@ function prettyPrint(value) {
 
 function isType(value, T, errors) {
 
-  if (T === primitives.any) {
+  if (T === primitives.any || value === null) {
     return true;
   }
 
