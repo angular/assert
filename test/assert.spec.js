@@ -100,11 +100,12 @@ describe('custom check', function() {
 //
 // Again, you probably won't write this code and rather use Traceur to do it for you, simply based on type annotations.
 describe('primitive value check', function() {
+  var primitive = $traceurRuntime.type;
 
   describe('string', function() {
 
     it('should pass', function() {
-      assert.type('xxx', assert.string);
+      assert.type('xxx', primitive.string);
     });
 
 
@@ -118,12 +119,12 @@ describe('primitive value check', function() {
   describe('number', function() {
 
     it('should pass', function() {
-      assert.type(123, assert.number);
+      assert.type(123, primitive.number);
     });
 
 
     it('should fail', function() {
-      expect(() => assert.type(false, assert.number))
+      expect(() => assert.type(false, primitive.number))
         .toThrowError('Expected an instance of number, got false!');
     });
   });
@@ -132,13 +133,13 @@ describe('primitive value check', function() {
   describe('boolean', function() {
 
     it('should pass', function() {
-      assert.type(true, assert.boolean);
-      assert.type(false, assert.boolean);
+      assert.type(true, primitive.boolean);
+      assert.type(false, primitive.boolean);
     });
 
 
     it('should fail', function() {
-      expect(() => assert.type(123, assert.boolean))
+      expect(() => assert.type(123, primitive.boolean))
         .toThrowError('Expected an instance of boolean, got 123!');
     });
   });

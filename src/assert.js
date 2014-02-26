@@ -11,6 +11,8 @@ function argPositionName(i) {
   return POSITION_NAME[position] || (position + 'th');
 }
 
+var primitives = $traceurRuntime.type;
+
 function assertArgumentTypes(...params) {
   var actual, type;
   var currentArgErrors;
@@ -20,10 +22,6 @@ function assertArgumentTypes(...params) {
   for (var i = 0, l = params.length; i < l; i = i + 2) {
     actual = params[i];
     type = params[i + 1];
-
-    if (typeof type === 'undefined') {
-      continue;
-    }
 
     currentArgErrors = [];
 
@@ -76,6 +74,22 @@ function prettyPrint(value) {
 }
 
 function isType(value, T, errors) {
+
+  if (T === primitives.any) {
+    return true;
+  }
+
+  if (T === primitives.string) {
+    return typeof value === 'string';
+  }
+
+  if (T === primitives.number) {
+    return typeof value === 'number';
+  }
+
+  if (T === primitives.boolean) {
+    return typeof value === 'boolean';
+  }
 
   // var parentStack = currentStack;
   // currentStack = [];
