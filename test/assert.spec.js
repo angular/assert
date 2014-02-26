@@ -337,6 +337,37 @@ describe('Traceur', function() {
       }).toThrowError('Expected an instance of number, got true!');
     });
   });
+
+
+  describe('void', function() {
+    function foo(bar): void {
+      return bar;
+    }
+
+    it('should pass when not defined', function() {
+      function nonReturn(): void {}
+      function returnNothing(): void { return; }
+      function returnUndefined(): void { return undefined; }
+
+      foo();
+      foo(undefined);
+      nonReturn();
+      returnNothing();
+      returnUndefined();
+    });
+
+
+    it('should fail when a value returned', function() {
+      expect(() => foo('bar'))
+        .toThrowError('Expected to return an instance of voidType, got "bar"!');
+    });
+
+
+    it('should fail when null returned', function() {
+      expect(() => foo(null))
+        .toThrowError('Expected to return an instance of voidType, got null!');
+    });
+  });
 });
 
 
