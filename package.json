@@ -1,5 +1,5 @@
 {
-  "name": "assert",
+  "name": "rtts-assert",
   "version": "0.0.1",
   "description": "A type assertion library for Traceur.",
   "main": "",
