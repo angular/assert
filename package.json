@@ -15,7 +15,7 @@
   "devDependencies": {
     "gulp": "^3.5.6",
     "gulp-connect": "~1.0.5",
-    "gulp-traceur": "^0.3.0",
+    "gulp-traceur": "~0.4.0",
     "karma": "^0.12.1",
     "karma-chrome-launcher": "^0.1.2",
     "karma-jasmine": "^0.2.2",
