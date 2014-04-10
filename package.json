@@ -2,7 +2,7 @@
   "name": "rtts-assert",
   "version": "0.0.1",
   "description": "A type assertion library for Traceur.",
-  "main": "",
+  "main": "./dist/cjs/assert.js",
   "homepage": "https://github.com/angular/assert",
   "repository": {
     "type": "git",
