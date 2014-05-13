@@ -17,8 +17,8 @@ import {assert} from 'assert';
 // ## Basic Type Check
 // By default, `instanceof` is used to check the type.
 //
-// Note, you can use `assert.type()` when unit testing or anywhere in your code.
-// However, most of the time, you will use it with Traceur.
+// Note that you can use `assert.type()` in unit tests or anywhere in your code.
+// Most of the time, you will use it with Traceur.
 // Jump to the [Traceur section](#integrating-with-traceur) to see an example of that.
 describe('basic type check', function() {
 
@@ -44,9 +44,10 @@ describe('basic type check', function() {
 
 // ## Custom Check
 // Often, `instanceof` is not flexible enough.
-// In that case, your type can define its own `assert` method, which will be used instead.
+// In that case, your type can define its own `assert` method which will be used instead.
 //
-// See define" for examples how to define custom checks, using the `assert.define()`.
+// See [Describing More Complex Types](#describing-more-complex-types) for examples how to
+// define custom checks using `assert.define()`.
 describe('custom check', function() {
 
   class Type {}
@@ -100,8 +101,8 @@ describe('custom check', function() {
 
 
 // ## Primitive Values
-// You don't wanna check primitive values such as strings, numbers or booleans with `instanceof`.
-// These get check using `typeof`.
+// You don't want to check primitive values (such as strings, numbers, or booleans) using `typeof` rather than
+// `instanceof`.
 //
 // Again, you probably won't write this code and rather use Traceur to do it for you, simply based on type annotations.
 describe('primitive value check', function() {
@@ -209,7 +210,7 @@ describe('define', function() {
   //
   // ### assert.arrayOf
   // Checks if the value is an array and if so, it checks whether all the items are one the given types.
-  // Note, these types can be composed types, not just simple ones.
+  // These types can be composed types, not just simple ones.
   describe('arrayOf', function() {
 
     var Titles = assert.define('ListOfTitles', function(value) {
@@ -277,14 +278,14 @@ describe('define', function() {
 
 // ## Integrating with Traceur
 //
-// Most of the time, you won't put `assert.type()` calls in your code and rather have Traceur to do it for you,
-// based on the type annotations.
+// Manually calling `assert.type()` in your code is cumbersome. Most of the time, you'll want to
+// have Traceur add the calls to `assert.type()` to your code based on type annotations.
 //
 // This has several advantages:
 // - it's shorter and nicer,
 // - you can easily ignore it when generating production code.
 //
-// Note, you need to run Traceur with `--types=true --type-assertions=true --type-assertion-module="path/to/assert"`.
+// You'll need to run Traceur with `--types=true --type-assertions=true --type-assertion-module="path/to/assert"`.
 describe('Traceur', function() {
 
   describe('arguments', function() {
@@ -372,5 +373,5 @@ describe('Traceur', function() {
 
 
 // <center><small>
-// This documentation has been generated from [assert.spec.js](https://github.com/vojtajina/assert/blob/master/test/assert.spec.js), using [Docco](http://jashkenas.github.io/docco/).
+// This documentation was generated from [assert.spec.js](https://github.com/vojtajina/assert/blob/master/test/assert.spec.js) using [Docco](http://jashkenas.github.io/docco/).
 // </small></center>
