@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Assert.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page">
+
+      <div class="header">
+        
+          
+          <h1 id="assert-js">Assert.js</h1>
+<p>A run-time type assertion library for JavaScript. Designed to be used with <a href="https://github.com/google/traceur-compiler">Traceur</a>.</p>
+
+          
+        
+
+        
+      </div>
+
+      
+        
+        <ul>
+<li><a href="#basic-type-check">Basic Type Check</a></li>
+<li><a href="#custom-check">Custom Check</a></li>
+<li><a href="#primitive-values">Primitive Values</a></li>
+<li><a href="#describing-more-complex-types">Describing more complex types</a><ul>
+<li><a href="#assert-arrayof">assert.arrayOf</a></li>
+<li><a href="#assert-structure">assert.structure</a></li>
+</ul>
+</li>
+<li><a href="#integrating-with-traceur">Integrating with Traceur</a></li>
+</ul>
+
+        
+          <div class='highlight'><pre>
+import {assert} from <span class="hljs-string">'assert'</span>;</pre></div>
+        
+      
+        
+        <h2 id="basic-type-check">Basic Type Check</h2>
+<p>By default, <code>instanceof</code> is used to check the type.</p>
+<p>Note that you can use <code>assert.type()</code> in unit tests or anywhere in your code.
+Most of the time, you will use it with Traceur.
+Jump to the <a href="#integrating-with-traceur">Traceur section</a> to see an example of that.</p>
+
+        
+          <div class='highlight'><pre>describe(<span class="hljs-string">'basic type check'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+  <span class="hljs-keyword">class</span> Type {}
+
+  it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    assert.type(<span class="hljs-keyword">new</span> Type(), Type);
+  });
+
+
+  it(<span class="hljs-string">'should fail'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    expect(() =&gt; assert.type(<span class="hljs-number">123</span>, Type))
+      .toThrowError(<span class="hljs-string">'Expected an instance of Type, got 123!'</span>);
+  });
+
+
+  it(<span class="hljs-string">'should allow null'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    assert.type(<span class="hljs-literal">null</span>, Type);
+  });
+});</pre></div>
+        
+      
+        
+        <h2 id="custom-check">Custom Check</h2>
+<p>Often, <code>instanceof</code> is not flexible enough.
+In that case, your type can define its own <code>assert</code> method which will be used instead.</p>
+<p>See <a href="#describing-more-complex-types">Describing More Complex Types</a> for examples how to
+define custom checks using <code>assert.define()</code>.</p>
+
+        
+          <div class='highlight'><pre>describe(<span class="hljs-string">'custom check'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+  <span class="hljs-keyword">class</span> Type {}</pre></div>
+        
+      
+        
+        <p>the basic check can just return true/false, without specifying any reason</p>
+
+        
+          <div class='highlight'><pre>  it(<span class="hljs-string">'should pass when returns true'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    Type.assert = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    };
+
+    assert.type({}, Type);
+  });
+
+
+  it(<span class="hljs-string">'should fail when returns false'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    Type.assert = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+    };
+
+    expect(() =&gt; assert.type({}, Type))
+      .toThrowError(<span class="hljs-string">'Expected an instance of Type, got {}!'</span>);
+  });</pre></div>
+        
+      
+        
+        <p>Using <code>assert.fail()</code> allows to report even multiple errors.</p>
+
+        
+          <div class='highlight'><pre>  it(<span class="hljs-string">'should fail when calls assert.fail()'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    Type.assert = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      assert.fail(<span class="hljs-string">'not smart enough'</span>);
+      assert.fail(<span class="hljs-string">'not blue enough'</span>);
+    };
+
+    expect(() =&gt; assert.type({}, Type))
+      .toThrowError(<span class="hljs-string">'Expected an instance of Type, got {}!\n'</span> +
+                    <span class="hljs-string">'  - not smart enough\n'</span> +
+                    <span class="hljs-string">'  - not blue enough'</span>);
+  });
+
+
+  it(<span class="hljs-string">'should fail when throws an exception'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    Type.assert = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'not long enough'</span>);
+    };
+
+    expect(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      assert.type(<span class="hljs-number">12345</span>, Type);
+    }).toThrowError(<span class="hljs-string">'Expected an instance of Type, got 12345!\n'</span> +
+                    <span class="hljs-string">'  - not long enough'</span>);
+  });
+});</pre></div>
+        
+      
+        
+        <h2 id="primitive-values">Primitive Values</h2>
+<p>You don’t want to check primitive values (such as strings, numbers, or booleans) using <code>typeof</code> rather than
+<code>instanceof</code>.</p>
+<p>Again, you probably won’t write this code and rather use Traceur to do it for you, simply based on type annotations.</p>
+
+        
+          <div class='highlight'><pre>describe(<span class="hljs-string">'primitive value check'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> primitive = $traceurRuntime.type;
+
+  describe(<span class="hljs-string">'string'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      assert.type(<span class="hljs-string">'xxx'</span>, primitive.string);
+    });
+
+
+    it(<span class="hljs-string">'should fail'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; assert.type(<span class="hljs-number">12345</span>, primitive.string))
+        .toThrowError(<span class="hljs-string">'Expected an instance of string, got 12345!'</span>);
+    });
+
+    it(<span class="hljs-string">'should allow null'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      assert.type(<span class="hljs-literal">null</span>, primitive.string);
+    });
+  });
+
+
+  describe(<span class="hljs-string">'number'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      assert.type(<span class="hljs-number">123</span>, primitive.number);
+    });
+
+
+    it(<span class="hljs-string">'should fail'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; assert.type(<span class="hljs-literal">false</span>, primitive.number))
+        .toThrowError(<span class="hljs-string">'Expected an instance of number, got false!'</span>);
+    });
+
+    it(<span class="hljs-string">'should allow null'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      assert.type(<span class="hljs-literal">null</span>, primitive.number);
+    });
+  });
+
+
+  describe(<span class="hljs-string">'boolean'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      assert.type(<span class="hljs-literal">true</span>, primitive.boolean);
+      assert.type(<span class="hljs-literal">false</span>, primitive.boolean);
+    });
+
+
+    it(<span class="hljs-string">'should fail'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; assert.type(<span class="hljs-number">123</span>, primitive.boolean))
+        .toThrowError(<span class="hljs-string">'Expected an instance of boolean, got 123!'</span>);
+    });
+
+    it(<span class="hljs-string">'should allow null'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      assert.type(<span class="hljs-literal">null</span>, primitive.boolean);
+    });
+  });
+});</pre></div>
+        
+      
+        
+        <h2 id="describing-more-complex-types">Describing more complex types</h2>
+<p>Often, a simple type check using <code>instanceof</code> or <code>typeof</code> is not enough.
+That’s why you can define custom checks using this DSL.
+The goal was to make them easy to compose and as descriptive as possible.
+Of course you can write your own DSL on the top of this.</p>
+
+        
+          <div class='highlight'><pre>describe(<span class="hljs-string">'define'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span></pre></div>
+        
+      
+        
+        <p>If the first argument to <code>assert.define()</code> is a type (function), it will define <code>assert</code> method on that function.</p>
+<p>In this example, being a type of Type means being a either a function or object.</p>
+
+        
+          <div class='highlight'><pre>  it(<span class="hljs-string">'should define assert for an existing type'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    <span class="hljs-keyword">class</span> Type {}
+
+    assert.define(Type, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      assert(value).is(<span class="hljs-built_in">Function</span>, <span class="hljs-built_in">Object</span>);
+    });
+
+    assert.type({}, Type);
+    assert.type(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>}, Type);
+    expect(() =&gt; assert.type(<span class="hljs-string">'str'</span>, Type))
+      .toThrowError(<span class="hljs-string">'Expected an instance of Type, got "str"!\n'</span> +
+                    <span class="hljs-string">'  - "str" is not instance of Function\n'</span> +
+                    <span class="hljs-string">'  - "str" is not instance of Object'</span>);
+  });</pre></div>
+        
+      
+        
+        <p>If the first argument to <code>assert.define()</code> is a string,
+it will create an interface - basically an empty class with <code>assert</code> method.</p>
+
+        
+          <div class='highlight'><pre>  it(<span class="hljs-string">'should define an interface'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    <span class="hljs-keyword">var</span> User = assert.define(<span class="hljs-string">'MyUser'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(user)</span> {</span>
+      assert(user).is(<span class="hljs-built_in">Object</span>);
+    });
+
+    assert.type({}, User);
+    expect(() =&gt; assert.type(<span class="hljs-number">12345</span>, User))
+      .toThrowError(<span class="hljs-string">'Expected an instance of MyUser, got 12345!\n'</span> +
+                    <span class="hljs-string">'  - 12345 is not instance of Object'</span>);
+  });</pre></div>
+        
+      
+        
+        <p>Here are a couple of more APIs to describe your custom types…</p>
+<h3 id="assert-arrayof">assert.arrayOf</h3>
+<p>Checks if the value is an array and if so, it checks whether all the items are one the given types.
+These types can be composed types, not just simple ones.</p>
+
+        
+          <div class='highlight'><pre>  describe(<span class="hljs-string">'arrayOf'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    <span class="hljs-keyword">var</span> Titles = assert.define(<span class="hljs-string">'ListOfTitles'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      assert(value).is(assert.arrayOf(assert.string, assert.number));
+    });
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+      assert.type([<span class="hljs-string">'one'</span>, <span class="hljs-number">55</span>, <span class="hljs-string">'two'</span>], Titles);
+    });
+
+
+    it(<span class="hljs-string">'should fail when non-array given'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+      expect(() =&gt; assert.type(<span class="hljs-string">'foo'</span>, Titles))
+        .toThrowError(<span class="hljs-string">'Expected an instance of ListOfTitles, got "foo"!\n'</span> +
+                      <span class="hljs-string">'  - "foo" is not instance of array of string/number\n'</span> +
+                      <span class="hljs-string">'    - "foo" is not instance of Array'</span>);
+    });
+
+
+    it(<span class="hljs-string">'should fail when an invalid item in the array'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+      expect(() =&gt; assert.type([<span class="hljs-string">'aaa'</span>, <span class="hljs-literal">true</span>], Titles))
+        .toThrowError(<span class="hljs-string">'Expected an instance of ListOfTitles, got ["aaa", true]!\n'</span> +
+                      <span class="hljs-string">'  - ["aaa", true] is not instance of array of string/number\n'</span> +
+                      <span class="hljs-string">'    - true is not instance of string\n'</span> +
+                      <span class="hljs-string">'    - true is not instance of number'</span>);
+    });
+  });</pre></div>
+        
+      
+        
+        <h3 id="assert-structure">assert.structure</h3>
+<p>Similar to <code>assert.arrayOf</code> which checks a content of an array,
+<code>assert.structure</code> checks if the value is an object with specific properties.</p>
+
+        
+          <div class='highlight'><pre>  describe(<span class="hljs-string">'structure'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    <span class="hljs-keyword">var</span> User = assert.define(<span class="hljs-string">'MyUser'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      assert(value).is(assert.structure({
+        name: assert.string,
+        age: assert.number
+      }));
+    });
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+      assert.type({name: <span class="hljs-string">'Vojta'</span>, age: <span class="hljs-number">28</span>}, User);
+    });
+
+
+    it(<span class="hljs-string">'should fail when non-object given'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+      expect(() =&gt; assert.type(<span class="hljs-number">123</span>, User))
+        .toThrowError(<span class="hljs-string">'Expected an instance of MyUser, got 123!\n'</span> +
+                      <span class="hljs-string">'  - 123 is not instance of object with properties name, age\n'</span> +
+                      <span class="hljs-string">'    - 123 is not instance of Object'</span>);
+    });
+
+
+    it(<span class="hljs-string">'should fail when an invalid property'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> {</span>
+      expect(() =&gt; assert.type({name: <span class="hljs-string">'Vojta'</span>, age: <span class="hljs-literal">true</span>}, User))
+        .toThrowError(<span class="hljs-string">'Expected an instance of MyUser, got {name: "Vojta", age: true}!\n'</span> +
+                      <span class="hljs-string">'  - {name: "Vojta", age: true} is not instance of object with properties name, age\n'</span> +
+                      <span class="hljs-string">'    - true is not instance of number'</span>);
+    });
+  });
+});</pre></div>
+        
+      
+        
+        <h2 id="integrating-with-traceur">Integrating with Traceur</h2>
+<p>Manually calling <code>assert.type()</code> in your code is cumbersome. Most of the time, you’ll want to
+have Traceur add the calls to <code>assert.type()</code> to your code based on type annotations.</p>
+<p>This has several advantages:</p>
+<ul>
+<li>it’s shorter and nicer,</li>
+<li>you can easily ignore it when generating production code.</li>
+</ul>
+<p>You’ll need to run Traceur with <code>--types=true --type-assertions=true --type-assertion-module=&quot;path/to/assert&quot;</code>.</p>
+
+        
+          <div class='highlight'><pre>describe(<span class="hljs-string">'Traceur'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+  describe(<span class="hljs-string">'arguments'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reverse</span><span class="hljs-params">(str: string)</span> {</span>
+      <span class="hljs-keyword">return</span> str ? reverse(str.substring(<span class="hljs-number">1</span>)) + str[<span class="hljs-number">0</span>] : <span class="hljs-string">''</span>
+    }
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(reverse(<span class="hljs-string">'angular'</span>)).toBe(<span class="hljs-string">'ralugna'</span>);
+    });
+
+
+    it(<span class="hljs-string">'should fail'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; reverse(<span class="hljs-number">123</span>))
+        .toThrowError(<span class="hljs-string">'Invalid arguments given!\n'</span> +
+                      <span class="hljs-string">'  - 1st argument has to be an instance of string, got 123'</span>);
+    });
+  });
+
+
+  describe(<span class="hljs-string">'return value'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">foo</span><span class="hljs-params">(bar)</span>: <span class="hljs-title">number</span> {</span>
+      <span class="hljs-keyword">return</span> bar;
+    }
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(foo(<span class="hljs-number">123</span>)).toBe(<span class="hljs-number">123</span>);
+    });
+
+
+    it(<span class="hljs-string">'should fail'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; foo(<span class="hljs-string">'bar'</span>))
+        .toThrowError(<span class="hljs-string">'Expected to return an instance of number, got "bar"!'</span>);
+    });
+  });
+
+
+  describe(<span class="hljs-string">'variables'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+
+    it(<span class="hljs-string">'should pass'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      <span class="hljs-keyword">var</span> count:number = <span class="hljs-number">1</span>;
+    });
+
+
+    it(<span class="hljs-string">'should fail'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; {
+        <span class="hljs-keyword">var</span> count: number = <span class="hljs-literal">true</span>;
+      }).toThrowError(<span class="hljs-string">'Expected an instance of number, got true!'</span>);
+    });
+  });
+
+
+  describe(<span class="hljs-string">'void'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">foo</span><span class="hljs-params">(bar)</span>: <span class="hljs-title">void</span> {</span>
+      <span class="hljs-keyword">return</span> bar;
+    }
+
+    it(<span class="hljs-string">'should pass when not defined'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">nonReturn</span><span class="hljs-params">()</span>: <span class="hljs-title">void</span> {</span>}
+      <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">returnNothing</span><span class="hljs-params">()</span>: <span class="hljs-title">void</span> {</span> <span class="hljs-keyword">return</span>; }
+      <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">returnUndefined</span><span class="hljs-params">()</span>: <span class="hljs-title">void</span> {</span> <span class="hljs-keyword">return</span> <span class="hljs-literal">undefined</span>; }
+
+      foo();
+      foo(<span class="hljs-literal">undefined</span>);
+      nonReturn();
+      returnNothing();
+      returnUndefined();
+    });
+
+
+    it(<span class="hljs-string">'should fail when a value returned'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; foo(<span class="hljs-string">'bar'</span>))
+        .toThrowError(<span class="hljs-string">'Expected to return an instance of voidType, got "bar"!'</span>);
+    });
+
+
+    it(<span class="hljs-string">'should fail when null returned'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+      expect(() =&gt; foo(<span class="hljs-literal">null</span>))
+        .toThrowError(<span class="hljs-string">'Expected to return an instance of voidType, got null!'</span>);
+    });
+  });
+});</pre></div>
+        
+      
+        
+        <center><small>
+This documentation was generated from <a href="https://github.com/vojtajina/assert/blob/master/test/assert.spec.js">assert.spec.js</a> using <a href="http://jashkenas.github.io/docco/">Docco</a>.
+</small></center>
+
+        
+      
+      <div class="fleur">h</div>
+    </div>
+  </div>
+</body>
+</html>
