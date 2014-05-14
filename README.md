@@ -1,1 +1,1 @@
-http://vojtajina.github.io/assert/
+http://angular.github.io/assert/
